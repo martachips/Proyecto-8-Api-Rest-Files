@@ -1,4 +1,5 @@
 const { generateSign } = require('../../config/jwt');
+const { deleteFile } = require('../../utils/deleteImg');
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
@@ -27,7 +28,7 @@ const register = async (req, res, next) => {
       userName: req.body.userName,
       password: req.body.password,
       email: req.body.email,
-      imgProfile: req.body.imgProfile,
+      imgProfile: req.file.path,
       role: 'user'
     });
 
@@ -66,4 +67,15 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { getUser, getUserByID, register, login };
+const deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+    deleteFile(deletedUser.imgProfile);
+    return res.status(200).json(deletedUser);
+  } catch (error) {
+    return res.status(400).json('Request error');
+  }
+};
+
+module.exports = { getUser, getUserByID, register, login, deleteUser };
